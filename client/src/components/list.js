@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import { Link } from '@reach/router';
 import Alert from 'react-bootstrap/Alert'
-
+import {ModalContext} from 'contexts/modal_context'
 
 export default function List(props) {
-  const {header, websites=[], canEdit, modalControl: {showContent}} = props
+  const {header, websites=[], canEdit} = props
+  const {modalControl: {showContent}} = useContext(ModalContext)
 
   const renderButton = (name, content={}) => {
     return canEdit ? <Button variant="link" 

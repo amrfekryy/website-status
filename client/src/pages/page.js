@@ -1,10 +1,13 @@
-import React, { Fragment } from 'react';
+import React, { useContext } from 'react';
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Container from 'react-bootstrap/Container'
+import {ModalContext} from 'contexts/modal_context'
+
 export default function Page(props) {
-  const {modalControl: {showContent}} = props
-    
+
+  const {modalControl: {showContent}} = useContext(ModalContext)
+  
   return (
     <>
       <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">

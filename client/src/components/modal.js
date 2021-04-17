@@ -1,16 +1,15 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import Modal from 'react-bootstrap/modal'
 import MyForm from 'components/form'
+import {ModalContext} from 'contexts/modal_context'
 
-export default function _Modal(props) {
-  const {
+
+export default function MyModal(props) {
+  const {    
     modalStatus, 
-    modalContent: {
-      title='Modal Title', 
-      body='Modal Body', 
-      footer
-    }, 
-    modalControl: {hide, show}} = props
+    modalContent: { title='Modal Title',  body='Modal Body', footer }, 
+    modalControl: {hide, show}
+  } = useContext(ModalContext)
 
   return (
     <>

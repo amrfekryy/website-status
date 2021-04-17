@@ -40,8 +40,8 @@ export default function Main(props) {
       </Button>
     </div> */}
 
-    <List header={'Your Websites'} websites={websites} {...props} canEdit={true}/>    
-    <List header={'All Websites'} websites={websites} {...props}/>    
+    <List header={'Your Websites'} websites={websites} canEdit={true}/>    
+    <List header={'All Websites'} websites={websites} />    
   </>
 }
     

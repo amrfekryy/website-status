@@ -1,39 +1,21 @@
-import React, {useState} from 'react';
-import Container from 'react-bootstrap/Container'
-import Row from 'react-bootstrap/Row'
+import React, {useState, useContext} from 'react';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Col from 'react-bootstrap/Col'
-import useMutator from 'helpers/mutator'
+import {ModalContext} from 'contexts/modal_context'
+
 
 
 export default function FormControl(props) {
-  const {modalContent: {title}, modalControl: {hide}, website={}, form} = props
-
-  // // see if item is passed
-  // const item = 
-  //   props.location && 
-  //   props.location.state &&
-  //   props.location.state.item
-  //   ? props.location.state.item : null
+  const { website={}, form } = props
+  const { modalContent: {title}, modalControl: {hide} } = useContext(ModalContext)
   
-  // // determine form action
-  // const action = item ? 'Update' : 'Add'
-  
-  // get item data
-  const { id, url: URL=''} = website
+  // get website data
+  const { } = website
 
   // set initial values
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [url, setURL] = useState(URL)
-
-
-
-  // // get mutators
-  // const addItem = useMutator('addItem')
-  // const updateItem = useMutator('updateItem')
-  // const uploadFile = useMutator('uploadFile', setPhoto)
 
   const fields = {
     username: {type: 'text', placeholder:'Username', onChange: e => setUsername(e.target.value)},
@@ -60,10 +42,9 @@ export default function FormControl(props) {
 
   return (
     <Form>  
-      { 
-        deletion 
+      { deletion 
           ? <div>{`Are you sure you want to delete ${url}?`}</div>
-          : forms[form].map(field => <Form.Control {...fields[field]}/>)
+          : forms[form].map(field => <Form.Control style={{marginTop: '1rem'}} {...fields[field]}/>)
       }
 
       <div style={{
