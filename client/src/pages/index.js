@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Router } from '@reach/router';
 import Page from './page'
 import Main from 'pages/main'
-import Travolta from 'assets/travolta.gif'
 import Modal from 'components/modal'
 import ModalContextProvider from 'contexts/modal_context'
 import UserContextProvider from 'contexts/user_context'
