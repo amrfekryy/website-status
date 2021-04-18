@@ -2,16 +2,15 @@ import React, {useState, useContext} from 'react';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import {ModalContext} from 'contexts/modal_context'
-
+import {map, get, pick} from 'lodash'
 
 
 export default function FormControl(props) {
-  const { website={}, form } = props
+  const { form: {type: formType, website={}} } = props
+  const { id, url: URL=''} = website
+  
   const { modalContent: {title}, modalControl: {hide} } = useContext(ModalContext)
   
-  // get website data
-  const { } = website
-
   // set initial values
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -23,8 +22,25 @@ export default function FormControl(props) {
     url: {type: 'text', placeholder:'Website URL', onChange: e => setURL(e.target.value), defaultValue: url},
   }
   const forms = {
-    user: ['username', 'password'],
-    website: ['url']
+    login: {
+      fields: ['username', 'password'],
+
+    },
+    signup: {
+      fields: ['username', 'password'],
+
+    },
+    addWebsite: {
+      fields: ['url'],
+
+    },
+    editWebsite: {
+      fields: ['url'],
+
+    },
+    deleteWebsite: {
+
+    }
   }
 
   const handleSubmit = (e) => {
@@ -38,13 +54,11 @@ export default function FormControl(props) {
     hide()
   }
 
-  const deletion = title == 'delete'
-
   return (
     <Form>  
-      { deletion 
-          ? <div>{`Are you sure you want to delete ${url}?`}</div>
-          : forms[form].map(field => <Form.Control style={{marginTop: '1rem'}} {...fields[field]}/>)
+      { formType == 'deleteWebsite' ? <div>{`Are you sure you want to delete ${url}?`}</div>
+          : map(pick(fields, get(forms, `${formType}.fields`, [])), field => 
+            <Form.Control style={{marginTop: '1rem'}} {...field}/>)
       }
 
       <div style={{
