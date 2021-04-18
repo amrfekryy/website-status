@@ -7,7 +7,7 @@ This is an application with a simple signup/login system that enables users to A
 - `axios` for requests, and `lodash` for data operations
 
 ### Database
-- A database `db.sqlite3` is attached in the repo with sample data to start with. If you'd like a fresh database just remove the existing one, and a new one will be created automatically upon running server.
+- A database `db.sqlite3` is attached in the repo with sample data to start with. You can login with `admin, admin` for username and password. If you'd like a fresh database just remove the existing one, and a new one will be created automatically upon running the server.
 
 ### Run Server
 - `cd server` 
