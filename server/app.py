@@ -6,9 +6,10 @@ import jwt
 import datetime
 from functools import wraps
 import os
-# from sqlalchemy.orm import relationship
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 # configure
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'db.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -27,7 +28,7 @@ class User(db.Model):
         """returns object data in easily serializable format"""
         return {
             'name': self.name,
-            'websites': [website.serialize for website in self.websites]
+            'websites': [website.serialize['id'] for website in self.websites]
         }
 
 
@@ -41,7 +42,7 @@ class Website(db.Model):
     def serialize(self):
         return { 
           'id': self.id, 'url': self.url, 'user_id': self.user_id,
-          'incidents': [incident.serialize for incident in self.incidents] 
+          'incidents': [incident.serialize['id'] for incident in self.incidents] 
         }
 
 
@@ -70,18 +71,6 @@ def token_required(func):
     return decorated
 
 
-@app.route('/websites', methods=['GET'])
-def get_all_websites():
-    websites = Website.query.all()
-    return jsonify({'users' : [website.serialize for website in websites]})
-
-
-@app.route('/user', methods=['GET'])
-@token_required
-def get_user(current_user):
-    return jsonify({'user' : current_user.serialize})
-
-
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
@@ -95,26 +84,26 @@ def signup():
     return jsonify({'message' : 'New user created!'})
 
 
-@app.route('/login')
+@app.route('/login', methods=['POST'])
 def login():
-    # http basic authentication
-    login_failed_retry = make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+    data = request.get_json()
     
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password: return login_failed_retry
+    if not data['name'] or not data['password']: 
+        return jsonify({'message' : 'Missing username or password!'}), 401
 
-    user = User.query.filter_by(name=auth.username).first()
-    if not user: return login_failed_retry
+    user = User.query.filter_by(name=data['name']).first()
+    if not user: return jsonify({'message' : "This username doesn't exist!"}), 401
 
-    if check_password_hash(user.password, auth.password):
+    if check_password_hash(user.password, data['password']):
         token = jwt.encode({'id' : user.id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+        
+        return jsonify({ 
+          'token' : token.decode('UTF-8'), 'user' : user.serialize })
 
-        return jsonify({'token' : token.decode('UTF-8')})
-
-    return login_failed_retry
+    return jsonify({'message' : "Password incorrect!"}), 401
 
 
-@app.route('/website', methods=['POST', 'PUT', 'DELETE'])
+@app.route('/website', methods=['POST'])
 @token_required
 def add_website(current_user):
     data = request.get_json()
@@ -137,6 +126,12 @@ def website_action(current_user, website_id):
 
     db.session.commit()
     return jsonify({'message' : "action done!"})
+
+
+@app.route('/websites', methods=['GET'])
+def get_all_websites():
+    websites = Website.query.all()
+    return jsonify({'websites' : [website.serialize for website in websites]})
 
 
 

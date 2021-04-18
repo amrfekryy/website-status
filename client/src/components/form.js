@@ -2,14 +2,16 @@ import React, {useState, useContext} from 'react';
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import {ModalContext} from 'contexts/modal_context'
+import {UserContext} from 'contexts/user_context'
 import {map, get, pick} from 'lodash'
-
+import axios from 'axios'
 
 export default function FormControl(props) {
   const { form: {type: formType, website={}} } = props
-  const { id, url: URL=''} = website
+  const { id:websiteId, url: URL=''} = website
   
   const { modalContent: {title}, modalControl: {hide} } = useContext(ModalContext)
+  const { token, userName, isLoggedIn, logoutUser, loginUser } = useContext(UserContext)
   
   // set initial values
   const [username, setUsername] = useState('')
@@ -21,52 +23,62 @@ export default function FormControl(props) {
     password: {type: 'password', placeholder:'Password', onChange: e => setPassword(e.target.value)},
     url: {type: 'text', placeholder:'Website URL', onChange: e => setURL(e.target.value), defaultValue: url},
   }
-  const forms = {
-    login: {
-      fields: ['username', 'password'],
-
-    },
+  const formSettings = get({
     signup: {
       fields: ['username', 'password'],
-
+      submit: () => axios.post('http://localhost:5000/signup', {name:username, password})
+    },
+    login: {
+      fields: ['username', 'password'],
+      submit: () => axios.post('http://localhost:5000/login', {name:username, password})
+        .then(({data: {token, user: {name, websites}}}) => {
+          alert(JSON.stringify({token, name, websites}))
+          loginUser({token, userName:name})
+        })
     },
     addWebsite: {
       fields: ['url'],
-
+      submit: () => {
+        alert(token)
+        return axios.post(
+          'http://localhost:5000/website', {url}, {headers: {token}})
+      }
     },
     editWebsite: {
       fields: ['url'],
-
+      submit: () => axios.put(
+        `http://localhost:5000/website/${websiteId}`, {url}, {headers: {token}})
     },
     deleteWebsite: {
-
+      warning: `Are you sure you want to delete ${url}?`,
+      submit: () => axios.delete(
+        `http://localhost:5000/website/${websiteId}`, {url}, {headers: {token}})
     }
-  }
+  }, formType, {})
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // 
-    alert(JSON.stringify({username, password, url}))
-    // if (action === 'Update') 
-    //   updateItem({variables: {id, type, name, price: +price, photo}})
-    // else addItem({variables: {type, name, price: +price, photo}})
-
+      
+    formSettings.submit()
+    .then(function (response) {
+      alert(JSON.stringify({response}))
+    })
+    .catch(function (error) {
+      alert(JSON.stringify({error}))
+    });
+  
     hide()
   }
 
   return (
     <Form>  
-      { formType == 'deleteWebsite' ? <div>{`Are you sure you want to delete ${url}?`}</div>
-          : map(pick(fields, get(forms, `${formType}.fields`, [])), field => 
-            <Form.Control style={{marginTop: '1rem'}} {...field}/>)
+      { formSettings.warning 
+          ? <div>{formSettings.warning}</div>
+          : map(pick(fields, formSettings.fields), field => 
+              <Form.Control style={{marginTop: '1rem'}} {...field}/>)
       }
 
-      <div style={{
-                display: 'flex',
-                flexDirection: 'row',          
-                justifyContent: 'center',
-                padding: '1rem'
-              }}>
+      <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', padding: '1rem'}}>
         <Button variant="primary" type="submit" onClick={e => handleSubmit(e)}>
           {title}
         </Button>

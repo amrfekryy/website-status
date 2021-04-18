@@ -3,11 +3,16 @@ import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Container from 'react-bootstrap/Container'
 import {ModalContext} from 'contexts/modal_context'
+import {UserContext} from 'contexts/user_context'
 
 export default function Page(props) {
 
   const {modalControl: {showContent}} = useContext(ModalContext)
   
+  // update user data (token, name) in application according to localStorage 
+  const { updateUser } = useContext(UserContext)
+  updateUser()
+
   return (
     <>
       <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">

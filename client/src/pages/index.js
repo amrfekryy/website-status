@@ -6,6 +6,7 @@ import Travolta from 'assets/travolta.gif'
 import Modal from 'components/modal'
 import ModalContextProvider from 'contexts/modal_context'
 import UserContextProvider from 'contexts/user_context'
+import AppContextProvider from 'contexts/app_context'
 
 const NotFound = () => <img 
     src={Travolta} alt="Nothing Here!" 
@@ -15,16 +16,18 @@ const NotFound = () => <img
 export default function Pages() {
   
   return (
-    <UserContextProvider>
-      <ModalContextProvider>
-        <Page >
-          <Router style={{width: '100%'}}>
-            <Main      path="/" />
-            <NotFound  default />
-          </Router>
-          <Modal />
-        </Page>
-      </ModalContextProvider>
-    </UserContextProvider>
+    <AppContextProvider>
+      <UserContextProvider>
+        <ModalContextProvider>
+          <Page >
+            <Router style={{width: '100%'}}>
+              <Main      path="/" />
+              <NotFound  default />
+            </Router>
+            <Modal />
+          </Page>
+        </ModalContextProvider>
+      </UserContextProvider>
+    </AppContextProvider>
   );
 }
