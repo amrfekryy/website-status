@@ -3,7 +3,8 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import {ModalContext} from 'contexts/modal_context'
 import {UserContext} from 'contexts/user_context'
-import {map, get, pick} from 'lodash'
+import {AppContext} from 'contexts/app_context'
+import {map, get, pick, omit} from 'lodash'
 import axios from 'axios'
 
 export default function FormControl(props) {
@@ -11,7 +12,8 @@ export default function FormControl(props) {
   const { id:websiteId, url: URL=''} = website
   
   const { modalContent: {title}, modalControl: {hide} } = useContext(ModalContext)
-  const { token, userName, isLoggedIn, logoutUser, loginUser } = useContext(UserContext)
+  const { token, loginUser, updateUserWebsites, websites:userWebsites } = useContext(UserContext)
+  const { websites, setWebsites } = useContext(AppContext)
   
   // set initial values
   const [username, setUsername] = useState('')
@@ -23,6 +25,7 @@ export default function FormControl(props) {
     password: {type: 'password', placeholder:'Password', onChange: e => setPassword(e.target.value)},
     url: {type: 'text', placeholder:'Website URL', onChange: e => setURL(e.target.value), defaultValue: url},
   }
+
   const formSettings = get({
     signup: {
       fields: ['username', 'password'],
@@ -33,7 +36,7 @@ export default function FormControl(props) {
       submit: () => axios.post('http://localhost:5000/login', {name:username, password})
         .then(({data: {token, user: {name, websites}}}) => {
           alert(JSON.stringify({token, name, websites}))
-          loginUser({token, userName:name})
+          loginUser({token, name, websites})
         })
     },
     addWebsite: {
@@ -42,17 +45,29 @@ export default function FormControl(props) {
         alert(token)
         return axios.post(
           'http://localhost:5000/website', {url}, {headers: {token}})
+          .then(({data: {website}}) => {
+            setWebsites({...websites, [website.id]: website})
+            updateUserWebsites([...userWebsites, website.id])
+          })
+  
       }
     },
     editWebsite: {
       fields: ['url'],
       submit: () => axios.put(
         `http://localhost:5000/website/${websiteId}`, {url}, {headers: {token}})
+        .then(({data: {website}}) => {
+          setWebsites({...websites, [website.id]: website})
+        })
     },
     deleteWebsite: {
       warning: `Are you sure you want to delete ${url}?`,
       submit: () => axios.delete(
-        `http://localhost:5000/website/${websiteId}`, {url}, {headers: {token}})
+        `http://localhost:5000/website/${websiteId}`, {headers: {token}})
+        .then(() => {
+          setWebsites(omit(websites, [websiteId]))
+        })
+
     }
   }, formType, {})
 

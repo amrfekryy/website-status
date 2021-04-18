@@ -9,6 +9,7 @@ export default (props) => {
   const [websites, setWebsites] = useState({})
   if (isEmpty(websites)) {
     axios.get('http://localhost:5000/websites').then(({data: {websites}}) => {
+      alert(JSON.stringify(websites))
       setWebsites(websites)
     })
   }

@@ -64,7 +64,7 @@ def token_required(func):
         try: 
             data = jwt.decode(token, app.config['SECRET_KEY'])
             current_user = User.query.get(data['id'])
-        except:
+        except jwt.ExpiredSignatureError:
             return jsonify({'message' : 'Token is invalid!'}), 401
 
         return func(current_user, *args, **kwargs)
@@ -111,7 +111,10 @@ def add_website(current_user):
     new_website = Website(url=data['url'], user_id=current_user.id)
     db.session.add(new_website)
     db.session.commit()
-    return jsonify({'message' : "Website created!"})
+    return jsonify({
+      'message' : "Website created!",
+      'website': new_website.serialize
+    })
 
 
 @app.route('/website/<website_id>', methods=['PUT', 'DELETE'])
@@ -121,17 +124,24 @@ def website_action(current_user, website_id):
     website = Website.query.filter_by(id=website_id, user_id=current_user.id).first()
     if not website: return jsonify({'message' : 'No Website found!'})
 
-    if request.method == 'PUT': website.url = data['url']
-    else: db.session.delete(website)
+    if request.method == 'PUT': 
+      website.url = data['url']
+      db.session.commit()
+      return jsonify({
+        'message' : "Website Updated!",
+        'website': website.serialize
+      })
 
-    db.session.commit()
-    return jsonify({'message' : "action done!"})
+    else: 
+      db.session.delete(website)
+      db.session.commit()
+      return jsonify({'message' : "Website Deleted!"})
 
 
 @app.route('/websites', methods=['GET'])
 def get_all_websites():
     websites = Website.query.all()
-    return jsonify({'websites' : [website.serialize for website in websites]})
+    return jsonify({'websites': dict((website.id, website.serialize) for website in websites)})
 
 
 

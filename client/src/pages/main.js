@@ -1,23 +1,21 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import List from 'components/list'
-
+import {AppContext} from 'contexts/app_context'
+import {UserContext} from 'contexts/user_context'
+import {pick, omit} from 'lodash'
 
 export default function Main(props) {
 
-  const websites = [
-    'success',
-    'success',
-    'success',
-    'danger',
-    'success',
-    'success',
-    'success',
-    'success',
-  ]
+  const {websites} = useContext(AppContext)
+  const {websites:userWebsites=[], isLoggedIn} = useContext(UserContext)
 
   return <>
-    <List header={'Your Websites'} websites={websites} canEdit={true}/>    
-    <List header={'All Websites'} websites={websites} />    
+    {isLoggedIn && <List 
+      header={'Your Websites'} 
+      websites={pick(websites, userWebsites)}
+      canEdit={true}
+    />}    
+    <List header={'All Websites'} websites={omit(websites, userWebsites)} />    
   </>
 }
     
