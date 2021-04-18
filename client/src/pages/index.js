@@ -8,10 +8,7 @@ import ModalContextProvider from 'contexts/modal_context'
 import UserContextProvider from 'contexts/user_context'
 import AppContextProvider from 'contexts/app_context'
 
-const NotFound = () => <img 
-    src={Travolta} alt="Nothing Here!" 
-    style={{ display:'block', margin:'auto'}}
-  /> 
+const NotFound = () => <div>Nothing Here!</div> 
 
 export default function Pages() {
   

@@ -12,11 +12,16 @@ import httplib2
 app = Flask(__name__)
 CORS(app)
 # configure
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'db.sqlite3')
+current_dir = os.path.abspath(os.path.dirname(__file__))
+database_path = os.path.join(current_dir, 'db.sqlite3')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + database_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'thisissecret'
 
 db = SQLAlchemy(app)
+
+
+
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -57,8 +62,10 @@ class Incident(db.Model):
         return { 'id': self.id, 'created_at': self.created_at, 'website_id': self.website_id }
 
 
-# uncomment this to create the database when server is run
-# db.create_all()
+# create database if it doesn't already exist
+if not os.path.exists(database_path):
+    print('Creating New Database')
+    db.create_all()
 
 
 def website_is_up(url):
@@ -83,6 +90,7 @@ def token_required(func):
 
         return func(current_user, *args, **kwargs)
     return decorated
+
 
 
 @app.route('/signup', methods=['POST'])

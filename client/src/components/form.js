@@ -78,7 +78,7 @@ export default function FormControl(props) {
     e.preventDefault()
     formSettings.submit()
     .then((message) => alert(message))
-    .catch((error) => alert(JSON.stringify({error})))
+    .catch(({data: {message}}) => alert(message? message : 'Something went wrong! Check server'))
     hideForm()
   }
 
