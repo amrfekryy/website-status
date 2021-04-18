@@ -10,7 +10,7 @@ export default function Page(props) {
   const {modalControl: {showContent}} = useContext(ModalContext)
   
   // update user data (token, name) in application according to localStorage 
-  const { updateUser } = useContext(UserContext)
+  const { updateUser, logoutUser, isLoggedIn } = useContext(UserContext)
   updateUser()
 
   return (
@@ -20,10 +20,16 @@ export default function Page(props) {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="ml-auto">
-            <Nav.Link 
-              onClick={() => showContent({title: 'Login', form: {type: 'login'}})}>Login</Nav.Link>
-            <Nav.Link 
-              onClick={() => showContent({title: 'Sign Up', form: {type: 'signup'}})}>Sign Up</Nav.Link>
+            {isLoggedIn? <Nav.Link onClick={() => logoutUser()}>Logout</Nav.Link>
+              : <>
+                  <Nav.Link 
+                    onClick={() => showContent({title: 'Login', form: {type: 'login'}})}
+                  >Login</Nav.Link>
+                  <Nav.Link 
+                    onClick={() => showContent({title: 'Sign Up', form: {type: 'signup'}})}
+                  >Sign Up</Nav.Link>
+                </>
+            }
           </Nav>
         </Navbar.Collapse>
       </Navbar>

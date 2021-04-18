@@ -30,6 +30,7 @@ export default (props) => {
   }
 
   const updateUserWebsites = (websites) => {
+    localStorage.setItem("websites", JSON.stringify(websites))
     setUser({ ...user, websites })
   }
 

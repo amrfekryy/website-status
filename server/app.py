@@ -7,6 +7,7 @@ import datetime
 from functools import wraps
 import os
 from flask_cors import CORS
+import httplib2
 
 app = Flask(__name__)
 CORS(app)
@@ -37,11 +38,12 @@ class Website(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(30))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    is_up = db.Column(db.Boolean)
     incidents = db.relationship("Incident")
     @property
     def serialize(self):
         return { 
-          'id': self.id, 'url': self.url, 'user_id': self.user_id,
+          'id': self.id, 'url': self.url, 'user_id': self.user_id, 'is_up': self.is_up,
           'incidents': [incident.serialize['id'] for incident in self.incidents] 
         }
 
@@ -53,6 +55,18 @@ class Incident(db.Model):
     @property
     def serialize(self):
         return { 'id': self.id, 'created_at': self.created_at, 'website_id': self.website_id }
+
+
+# uncomment this to create the database when server is run
+# db.create_all()
+
+
+def website_is_up(url):
+    # check if url returns a valid status code
+    h = httplib2.Http()
+    try: resp = h.request(url, 'HEAD')
+    except: return False
+    return int(resp[0]['status']) < 400
 
 
 def token_required(func):
@@ -75,13 +89,16 @@ def token_required(func):
 def signup():
     data = request.get_json()
 
+    user = User.query.filter_by(name=data['name']).first()
+    if user: return jsonify({'message' : "This username already exists!"}), 401
+
     hashed_password = generate_password_hash(data['password'], method='sha256')
     new_user = User(name=data['name'], password=hashed_password)
 
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message' : 'New user created!'})
+    return jsonify({'message' : f'Hi {new_user.name}! Please Login'})
 
 
 @app.route('/login', methods=['POST'])
@@ -95,10 +112,16 @@ def login():
     if not user: return jsonify({'message' : "This username doesn't exist!"}), 401
 
     if check_password_hash(user.password, data['password']):
-        token = jwt.encode({'id' : user.id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+        token = jwt.encode({'id' : user.id }, app.config['SECRET_KEY'])
+        
+        # add the following for expiry date
+        # 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
         
         return jsonify({ 
-          'token' : token.decode('UTF-8'), 'user' : user.serialize })
+          'token' : token.decode('UTF-8'), 
+          'user' : user.serialize,
+          'message' : f"Welcome back {user.name}!" 
+        })
 
     return jsonify({'message' : "Password incorrect!"}), 401
 
@@ -108,7 +131,9 @@ def login():
 def add_website(current_user):
     data = request.get_json()
     
-    new_website = Website(url=data['url'], user_id=current_user.id)
+    url = data['url']
+    is_up=website_is_up(url)
+    new_website = Website(url=url, user_id=current_user.id, is_up=is_up)
     db.session.add(new_website)
     db.session.commit()
     return jsonify({
@@ -124,8 +149,10 @@ def website_action(current_user, website_id):
     website = Website.query.filter_by(id=website_id, user_id=current_user.id).first()
     if not website: return jsonify({'message' : 'No Website found!'})
 
-    if request.method == 'PUT': 
-      website.url = data['url']
+    if request.method == 'PUT':
+      url = data['url']
+      website.url = url
+      website.is_up=website_is_up(url)
       db.session.commit()
       return jsonify({
         'message' : "Website Updated!",
@@ -141,6 +168,11 @@ def website_action(current_user, website_id):
 @app.route('/websites', methods=['GET'])
 def get_all_websites():
     websites = Website.query.all()
+    # update is_up status for all websites
+    for website in websites:
+        website.is_up=website_is_up(website.url)
+    db.session.commit()
+
     return jsonify({'websites': dict((website.id, website.serialize) for website in websites)})
 
 

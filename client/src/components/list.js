@@ -25,23 +25,27 @@ export default function List(props) {
     
     <Row>
       { !isEmpty(websites)
-        ? map(websites, (website, idx) => 
-          <Col key={idx} xs={12} md={6} style={{paddingTop: '0.1rem'}}>
+        ? map(websites, (website, idx) => {
+          const {url, is_up} = website
+          return <Col key={idx} xs={12} md={6} style={{paddingTop: '0.1rem'}}>
               
-              <Alert variant={website.status || 'success'} 
+              <Alert variant={is_up ? 'success' : 'danger'} 
                 style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}
-              >
+                >
                
                 <div>
-                  <Alert.Link href={website.url}>{website.url}</Alert.Link> works
+                  <Alert.Link 
+                    href={is_up ? url : '#'} target="_blank"
+                  >{url}</Alert.Link> {is_up? 'is Up!' : 'is Down!'}
                 </div>
                 <div>
-                  {renderButton('edit', website)}{renderButton('delete', website)}
+                  {renderButton('edit', website)}
+                  {renderButton('delete', website)}
                 </div>
               
               </Alert>
           
-          </Col>)
+          </Col>})
         : <p>No websites!</p>
       }      
     </Row>

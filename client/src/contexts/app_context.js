@@ -6,10 +6,10 @@ export const AppContext = React.createContext({});
 
 export default (props) => {
 
-  const [websites, setWebsites] = useState({})
-  if (isEmpty(websites)) {
+  const [websites, setWebsites] = useState(null)
+  if (!websites) {
     axios.get('http://localhost:5000/websites').then(({data: {websites}}) => {
-      alert(JSON.stringify(websites))
+      // alert(JSON.stringify(websites))
       setWebsites(websites)
     })
   }
